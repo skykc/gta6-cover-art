@@ -7,6 +7,7 @@
 
 export const LAYOUTS = [
   { id: 'grid9', name: 'Nine Panel', panels: 8 },
+  { id: 'collage', name: 'Collage', panels: 9 },
   { id: 'hero3', name: 'Hero + 3', panels: 4 },
   { id: 'fullbleed', name: 'Full Bleed', panels: 1 },
   { id: 'tilted', name: 'Tilted Snaps', panels: 3 },
@@ -53,18 +54,20 @@ export const SIZES = [
   { id: 'wide', label: 'Wide 1920 x 1080', w: 1920, h: 1080 },
 ];
 
-/** A fresh default state. `panels` holds nine crop configs; each layout uses the ones it needs. */
+/** A fresh default state. `panels` holds nine crop configs; each layout uses the ones it needs.
+ * Every panel uses a DIFFERENT sample photo (no repeats), and each crop is
+ * centred on its photo's face, so no face is ever cut by a panel edge. */
 export function defaultState() {
   const crops = [
-    { photo: 0, cx: 0.5, cy: 0.42, zoom: 1.15 },
-    { photo: 1, cx: 0.5, cy: 0.5, zoom: 1.1 },
-    { photo: 2, cx: 0.5, cy: 0.55, zoom: 1.2 },
-    { photo: 3, cx: 0.5, cy: 0.5, zoom: 1.0 },
-    { photo: 1, cx: 0.62, cy: 0.45, zoom: 1.35 },
-    { photo: 0, cx: 0.38, cy: 0.5, zoom: 1.25 },
-    { photo: 3, cx: 0.5, cy: 0.6, zoom: 1.15 },
-    { photo: 2, cx: 0.45, cy: 0.45, zoom: 1.3 },
-    { photo: 0, cx: 0.55, cy: 0.5, zoom: 1.05 },
+    { photo: 12, cx: 0.25, cy: 0.50, zoom: 1.0 },  // mafia: landscape art, mobster on the left
+    { photo: 13, cx: 0.55, cy: 0.50, zoom: 1.0 },  // bikini-drink: face + cocktail
+    { photo: 14, cx: 0.55, cy: 0.55, zoom: 1.0 },  // lambo: driver face clear of the V logo's top edge
+    { photo: 8, cx: 0.70, cy: 0.47, zoom: 1.4 },   // convertible: red classic, driver zoomed big
+    { photo: 6, cx: 0.5, cy: 0.25, zoom: 1.3 },    // skater: face fully in frame, not under the title
+    { photo: 4, cx: 0.45, cy: 0.40, zoom: 1.3 },   // lifeguard: face + chest tattoos in frame
+    { photo: 9, cx: 0.57, cy: 0.55, zoom: 1.0 },   // oceandrive: Black rider standing stunt on a sport bike, neon street
+    { photo: 10, cx: 0.55, cy: 0.55, zoom: 1.0 },  // alligator: head right, low in frame
+    { photo: 11, cx: 0.5, cy: 0.58, zoom: 1.0 },   // dog: bar trio — guy with pistol, two girls with cocktails; cy 0.58 keeps faces + pistol in the wide slot
   ];
   return {
     layout: 'grid9',
@@ -111,6 +114,22 @@ export function layoutSlots(layoutId, W, H) {
         }
       }
     }
+  } else if (layoutId === 'collage') {
+    // A key-art collage, not a uniform grid: two tall panels down the left
+    // (mafia, bikini), two wide car panels across the top, three mid panels
+    // and two wide panels at the foot, with the title block overlapping the
+    // top/middle seam in the centre like a poster logo. Panel sizes vary on
+    // purpose; every slot shows a different photo, nine in all.
+    slots.push({ x: 0, y: 0, w: W * 0.25, h: H * 0.50, panel: 0, rot: 0, kind: 'photo' });
+    slots.push({ x: 0, y: H * 0.50, w: W * 0.25, h: H * 0.50, panel: 1, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.25, y: 0, w: W * 0.37, h: H * 0.34, panel: 2, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.62, y: 0, w: W * 0.38, h: H * 0.34, panel: 3, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.25, y: H * 0.34, w: W * 0.25, h: H * 0.33, panel: 4, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.50, y: H * 0.34, w: W * 0.25, h: H * 0.33, panel: 5, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.75, y: H * 0.34, w: W * 0.25, h: H * 0.33, panel: 6, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.25, y: H * 0.67, w: W * 0.37, h: H * 0.33, panel: 7, rot: 0, kind: 'photo' });
+    slots.push({ x: W * 0.62, y: H * 0.67, w: W * 0.38, h: H * 0.33, panel: 8, rot: 0.03, kind: 'photo' });
+    slots.push({ x: W * 0.29, y: H * 0.22, w: W * 0.36, h: H * 0.32, panel: -1, rot: 0, kind: 'logo' });
   } else if (layoutId === 'hero3') {
     const hw = W * 0.62;
     const rw = W - hw - g;
@@ -125,12 +144,15 @@ export function layoutSlots(layoutId, W, H) {
     slots.push({ x: 0, y: H * 0.72, w: W, h: H * 0.28, panel: -1, rot: 0, kind: 'band', bandStyle: 'bottom' });
   } else if (layoutId === 'tilted') {
     slots.push({ x: 0, y: 0, w: W, h: H * 0.13, panel: -1, rot: 0, kind: 'band', bandStyle: 'top' });
-    const cw = W * 0.3;
+    // Narrower cards with wider gaps and gentler tilts: a rotated card's
+    // corner must never cross the gap into its neighbour, or a sliver of the
+    // neighbour's face peeks out at the card edge.
+    const cw = W * 0.29;
     const ch = H * 0.72;
     const y = H * 0.16;
-    slots.push({ x: W * 0.04, y, w: cw, h: ch, panel: 0, rot: -0.07, kind: 'photo' });
-    slots.push({ x: W * 0.35, y: y - H * 0.02, w: cw, h: ch, panel: 1, rot: 0.05, kind: 'photo' });
-    slots.push({ x: W * 0.66, y, w: cw, h: ch, panel: 2, rot: -0.03, kind: 'photo' });
+    slots.push({ x: W * 0.02, y, w: cw, h: ch, panel: 0, rot: -0.045, kind: 'photo' });
+    slots.push({ x: W * 0.345, y: y - H * 0.02, w: cw, h: ch, panel: 1, rot: 0.03, kind: 'photo' });
+    slots.push({ x: W * 0.67, y, w: cw, h: ch, panel: 2, rot: -0.02, kind: 'photo' });
     slots.push({ x: 0, y: H * 0.92, w: W, h: H * 0.05, panel: -1, rot: 0, kind: 'footer' });
   } else if (layoutId === 'sleeve6') {
     const cw = (W - 2 * g) / 3;
@@ -327,6 +349,96 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     try { ctx.letterSpacing = `${Math.max(1, size * 0.12)}px`; } catch { /* older canvas */ }
     ctx.fillText(text, x + w / 2, y + h / 2);
     try { ctx.letterSpacing = '0px'; } catch { /* older canvas */ }
+    ctx.restore();
+    return;
+  }
+
+  // Collage logo block: a slim V chevron (after the big V silhouette in
+  // Risma's reference — the shape only, never the Rockstar logo itself),
+  // sunset-gradient fill, white Anton text with a dark outline. The V covers
+  // far less of the photos than the old wide rectangle (its point sits
+  // between the skater and lifeguard panels, below both faces), and the type
+  // is nearly twice as big. The subtitle floats just under the point.
+  if (kind === 'logo') {
+    const cx = x + w / 2;
+    const logoTitle = (state.title || 'NEON COAST').toUpperCase();
+    const logoLines = logoTitle.split(/\s+/).filter(Boolean);
+    const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+    grad.addColorStop(0, '#7c5cff');
+    grad.addColorStop(0.45, '#ff5e9c');
+    grad.addColorStop(1, '#ff8a3c');
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(cx, y + h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.lineWidth = Math.max(3, w * 0.012);
+    ctx.strokeStyle = '#14092b';
+    ctx.stroke();
+    ctx.lineWidth = Math.max(1, w * 0.003);
+    ctx.strokeStyle = 'rgba(255,46,136,0.9)';
+    ctx.stroke();
+
+    const pad = w * 0.04;
+    const bandH = h * 0.30;
+    const lineTs = [0.30, 0.58];
+    let size = bandH;
+    logoLines.forEach((line, i) => {
+      const t = i < lineTs.length ? lineTs[i] : 0.58 + 0.22 * (i - 1);
+      const maxW = w * (1 - t) - pad * 2;
+      size = Math.min(size, fitFont(ctx, line, 'Anton, sans-serif', 400, maxW, bandH));
+    });
+    size = Math.max(10, size);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    logoLines.forEach((line, i) => {
+      const t = i < lineTs.length ? lineTs[i] : 0.58 + 0.22 * (i - 1);
+      const cy = y + h * t;
+      ctx.font = `400 ${size}px Anton, sans-serif`;
+      ctx.lineWidth = Math.max(1, size * 0.08);
+      ctx.strokeStyle = '#14092b';
+      ctx.strokeText(line, cx, cy);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(line, cx, cy);
+    });
+    const sub = (state.subtitle || '').trim();
+    if (sub) {
+      // The tagline rides on a small dark pill just under the point, so it
+      // stays readable over the busy photos instead of sprawling across
+      // the skater's and lifeguard's necks.
+      const subSize = fitFont(ctx, sub, 'Pacifico, cursive', 400, w * 0.85, h * 0.13);
+      ctx.font = `400 ${subSize}px Pacifico, cursive`;
+      const subY = y + h + h * 0.10;
+      const textW = ctx.measureText(sub).width;
+      const pillW = textW + subSize * 1.2;
+      const pillH = subSize * 1.9;
+      const px = cx - pillW / 2;
+      const py = subY - pillH / 2;
+      const r = pillH / 2;
+      ctx.beginPath();
+      ctx.moveTo(px + r, py);
+      ctx.lineTo(px + pillW - r, py);
+      ctx.arcTo(px + pillW, py, px + pillW, py + r, r);
+      ctx.lineTo(px + pillW, py + pillH - r);
+      ctx.arcTo(px + pillW, py + pillH, px + pillW - r, py + pillH, r);
+      ctx.lineTo(px + r, py + pillH);
+      ctx.arcTo(px, py + pillH, px, py + pillH - r, r);
+      ctx.lineTo(px, py + r);
+      ctx.arcTo(px, py, px + r, py, r);
+      ctx.closePath();
+      ctx.fillStyle = '#14092b';
+      ctx.fill();
+      ctx.lineWidth = Math.max(1, subSize * 0.06);
+      ctx.strokeStyle = '#ff2e88';
+      ctx.stroke();
+      ctx.fillStyle = grade.sub;
+      ctx.shadowColor = grade.sub;
+      ctx.shadowBlur = subSize * 0.35;
+      ctx.fillText(sub, cx, subY);
+      ctx.shadowBlur = 0;
+    }
     ctx.restore();
     return;
   }

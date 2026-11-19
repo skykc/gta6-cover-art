@@ -5,7 +5,7 @@
 // The app is a cover maker: six multi-panel layouts (nine-panel grid with a halftone title block, hero + three,
 // full bleed, tilted snapshots, six-panel sleeve, poster), five gradient-map grades with grain, vignette and
 // halftone, Anton + Pacifico lettering (OFL, vendored), drag/zoom crop per panel, undo/redo, and one-click PNG
-// export in 1080 x 1080, 1080 x 1350 and 1920 x 1080. Its four sample photos (app/samples/) are AI-made originals,
+// export in 1080 x 1080, 1080 x 1350 and 1920 x 1080. Its twelve sample photos (app/samples/) are AI-made originals,
 // free to use. Put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.

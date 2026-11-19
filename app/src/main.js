@@ -9,8 +9,19 @@ import { runShot } from './shots.js';
 const SAMPLES = [
   { name: 'woman-car', src: 'samples/woman-car.jpg' },
   { name: 'friends-neon', src: 'samples/friends-neon.jpg' },
-  { name: 'boulevard', src: 'samples/boulevard.jpg' },
+  { name: 'motorcycle', src: 'samples/motorcycle.jpg' },
+  { name: 'diner', src: 'samples/diner.jpg' },
+  { name: 'lifeguard', src: 'samples/lifeguard.jpg' },
+  { name: 'yacht', src: 'samples/yacht.jpg' },
+  { name: 'skater', src: 'samples/skater.jpg' },
   { name: 'pier', src: 'samples/pier.jpg' },
+  { name: 'convertible', src: 'samples/convertible.jpg' },
+  { name: 'oceandrive', src: 'samples/oceandrive.jpg' },
+  { name: 'alligator', src: 'samples/alligator.jpg' },
+  { name: 'dog', src: 'samples/dog.jpg' },
+  { name: 'mafia', src: 'samples/mafia.jpg' },
+  { name: 'bikini-drink', src: 'samples/bikini-drink.jpg' },
+  { name: 'lambo', src: 'samples/lambo.jpg' },
 ];
 
 const canvas = document.getElementById('cover');
