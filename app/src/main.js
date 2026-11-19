@@ -3,25 +3,22 @@
 // scrolling, then export the cover as a PNG in the three post sizes. Photos
 // are read with FileReader and never leave the machine. A `?shot=` query sets
 // up a fixed scene for a screenshot instead (./shots.js).
-import { drawCover, panelAt, defaultState, LAYOUTS, GRADES, SIZES } from './cover.js';
+import { paintCover, panelAt, freshState, LAYOUTS, GRADES, SIZES } from './cover.js';
 import { runShot } from './shots.js';
 
 const SAMPLES = [
-  { name: 'woman-car', src: 'samples/woman-car.jpg' },
-  { name: 'friends-neon', src: 'samples/friends-neon.jpg' },
-  { name: 'motorcycle', src: 'samples/motorcycle.jpg' },
-  { name: 'diner', src: 'samples/diner.jpg' },
-  { name: 'lifeguard', src: 'samples/lifeguard.jpg' },
-  { name: 'yacht', src: 'samples/yacht.jpg' },
-  { name: 'skater', src: 'samples/skater.jpg' },
-  { name: 'pier', src: 'samples/pier.jpg' },
-  { name: 'convertible', src: 'samples/convertible.jpg' },
-  { name: 'oceandrive', src: 'samples/oceandrive.jpg' },
-  { name: 'alligator', src: 'samples/alligator.jpg' },
-  { name: 'dog', src: 'samples/dog.jpg' },
   { name: 'mafia', src: 'samples/mafia.jpg' },
   { name: 'bikini-drink', src: 'samples/bikini-drink.jpg' },
   { name: 'lambo', src: 'samples/lambo.jpg' },
+  { name: 'convertible', src: 'samples/convertible.jpg' },
+  { name: 'skater', src: 'samples/skater.jpg' },
+  { name: 'lifeguard', src: 'samples/lifeguard.jpg' },
+  { name: 'motorcycle', src: 'samples/motorcycle.jpg' },
+  { name: 'alligator', src: 'samples/alligator.jpg' },
+  { name: 'bar-trio', src: 'samples/bar-trio.jpg' },
+  { name: 'woman-car', src: 'samples/woman-car.jpg' },
+  { name: 'diner', src: 'samples/diner.jpg' },
+  { name: 'yacht', src: 'samples/yacht.jpg' },
 ];
 
 const canvas = document.getElementById('cover');
@@ -29,7 +26,7 @@ const status = document.getElementById('status');
 const thumbs = document.getElementById('thumbs');
 
 let photos = []; // {name, img}
-let state = defaultState();
+let state = freshState();
 let selected = 0;
 let history = [];
 let future = [];
@@ -63,11 +60,25 @@ export function loadImage(url) {
   });
 }
 
+// Pre-decode an image at full resolution into an offscreen canvas: drawing
+// from the canvas bitmap (never from the Image element) keeps resampling
+// identical no matter what scale a layout draws at, so switching layouts and
+// undoing never shifts pixels. (Drawing the same Image at different scales
+// lets the browser re-decode it per scale, which shifts edge pixels by a
+// few levels — invisible, but it made undo look unrestored in a pixel diff.)
+function toBitmap(img) {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  c.getContext('2d').drawImage(img, 0, 0);
+  return c;
+}
+
 async function loadSamples() {
   photos = [];
   for (const s of SAMPLES) {
     try {
-      photos.push({ name: s.name, img: await loadImage(s.src) });
+      photos.push({ name: s.name, src: s.src, img: toBitmap(await loadImage(s.src)) });
     } catch {
       // A missing sample just means fewer panels to fill.
     }
@@ -83,7 +94,7 @@ function renderThumbs() {
     b.className = 'thumb';
     b.title = `Use ${p.name} for panel ${selected + 1}`;
     const img = document.createElement('img');
-    img.src = p.img.src;
+    img.src = p.src ?? p.img.src;
     img.alt = p.name;
     b.appendChild(img);
     b.addEventListener('click', () => {
@@ -98,7 +109,7 @@ function renderThumbs() {
 }
 
 function redraw() {
-  lastSlots = drawCover(canvas, state, photos.map((p) => p.img), {
+  lastSlots = paintCover(canvas, state, photos.map((p) => p.img), {
     preview: !document.body.classList.contains('shot-cover'),
     selected,
   });
@@ -170,7 +181,7 @@ document.getElementById('photo').addEventListener('change', async (e) => {
       r.onload = () => resolve(r.result);
       r.readAsDataURL(f);
     });
-    photos.push({ name: f.name.replace(/\.[^.]+$/, ''), img: await loadImage(url) });
+    photos.push({ name: f.name.replace(/\.[^.]+$/, ''), src: url, img: toBitmap(await loadImage(url)) });
   }
   renderThumbs();
   redraw();
@@ -188,15 +199,23 @@ document.getElementById('fillall').addEventListener('click', () => {
 });
 
 // --- text + toggles ----------------------------------------------------------
-document.getElementById('title').addEventListener('input', (e) => { state.title = e.target.value; redraw(); });
-document.getElementById('subtitle').addEventListener('input', (e) => { state.subtitle = e.target.value; redraw(); });
-document.getElementById('badge').addEventListener('input', (e) => { state.badge = e.target.value; redraw(); });
-document.getElementById('heat').addEventListener('change', (e) => { pushHistory(); state.heat = Number(e.target.value); redraw(); });
-document.getElementById('grain').addEventListener('change', (e) => { pushHistory(); state.grain = e.target.checked; redraw(); });
-document.getElementById('vignette').addEventListener('change', (e) => { pushHistory(); state.vignette = e.target.checked; redraw(); });
-document.getElementById('halftone').addEventListener('change', (e) => { pushHistory(); state.halftone = e.target.checked; redraw(); });
+// Typing pushes one history entry per editing session (on the first keystroke,
+// snapshotting the pre-edit text), so undo restores the text from before the
+// user started typing — not the text after the last keystroke.
+let textEdit = false;
+function textInput(key, e) {
+  if (!textEdit) {
+    pushHistory();
+    textEdit = true;
+  }
+  state[key] = e.target.value;
+  redraw();
+}
+document.getElementById('title').addEventListener('input', (e) => textInput('title', e));
+document.getElementById('subtitle').addEventListener('input', (e) => textInput('subtitle', e));
+document.getElementById('badge').addEventListener('input', (e) => textInput('badge', e));
 for (const id of ['title', 'subtitle', 'badge']) {
-  document.getElementById(id).addEventListener('change', () => pushHistory());
+  document.getElementById(id).addEventListener('change', () => { textEdit = false; });
 }
 
 document.getElementById('undo').addEventListener('click', () => {
@@ -268,7 +287,7 @@ function exportSize(size) {
   const out = document.createElement('canvas');
   out.width = size.w;
   out.height = size.h;
-  drawCover(out, state, photos.map((p) => p.img));
+  paintCover(out, state, photos.map((p) => p.img));
   return new Promise((resolve) => {
     out.toBlob((blob) => {
       const a = document.createElement('a');

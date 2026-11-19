@@ -2,11 +2,12 @@
 // directory's app/ folder, plain static files a desktop browser loads offline (app/index.html and its ES modules,
 // no library and no network request), and the program hands it in. It copies app/ and screenshots/ from beside this
 // file to /output and writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
-// The app is a cover maker: six multi-panel layouts (nine-panel grid with a halftone title block, hero + three,
-// full bleed, tilted snapshots, six-panel sleeve, poster), five gradient-map grades with grain, vignette and
-// halftone, Anton + Pacifico lettering (OFL, vendored), drag/zoom crop per panel, undo/redo, and one-click PNG
-// export in 1080 x 1080, 1080 x 1350 and 1920 x 1080. Its twelve sample photos (app/samples/) are AI-made originals,
-// free to use. Put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// The app is a cover maker: seven multi-panel layouts (nine-panel grid with a halftone title block, a nine-photo
+// key-art collage with a slim V title block, hero + three, full bleed, tilted snapshots, six-panel sleeve, poster),
+// five gradient-map grades with grain, vignette and halftone, Anton + Pacifico lettering (OFL, vendored), drag/zoom
+// crop per panel, undo/redo, and one-click PNG export in 1080 x 1080, 1080 x 1350 and 1920 x 1080. Its twelve sample
+// pictures (app/samples/) are AI-made original illustrations, free to use. Put your 3 or 4 PNG or JPEG screenshots
+// in screenshots/ (the first by name is the cover) and run it.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:

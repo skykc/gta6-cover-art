@@ -2,16 +2,16 @@
 // ?shot=cover shows the cover alone at the size the query asks for (w, h).
 // layout, grade, title, subtitle, badge, heat and halftone come from the query.
 // panels=<panel:photo:cx:cy:zoom;...> overrides individual panel crops for the
-// shot, so a screenshot can frame each photo exactly (a different photo in
+// shot, so a screenshot can frame each picture exactly (a different picture in
 // every panel, every face whole) without changing the editor's default state.
 // window.__shotReady is set once the fonts are loaded and the cover is painted.
-import { defaultState } from './cover.js';
+import { freshState } from './cover.js';
 
 export async function runShot(shot, query, api) {
   if (shot === 'cover') document.body.classList.add('shot-cover');
   if (shot === 'editor') document.body.classList.add('shot-editor');
   const patch = {
-    layout: query.get('layout') ?? 'grid9',
+    layout: query.get('layout') ?? 'collage',
     grade: query.get('grade') ?? 'sunset',
     title: query.get('title') ?? 'NEON COAST',
     subtitle: query.get('subtitle') ?? 'chase the sunset',
@@ -22,7 +22,7 @@ export async function runShot(shot, query, api) {
   if (query.get('grain')) patch.grain = query.get('grain') === '1';
   if (query.get('vignette')) patch.vignette = query.get('vignette') === '1';
   if (query.get('panels')) {
-    const panels = defaultState().panels.map((p) => ({ ...p }));
+    const panels = freshState().panels.map((p) => ({ ...p }));
     for (const part of query.get('panels').split(';')) {
       const [panel, photo, cx, cy, zoom] = part.split(':').map(Number);
       if (Number.isInteger(panel) && panels[panel] && Number.isInteger(photo)) {

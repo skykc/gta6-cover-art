@@ -1,9 +1,9 @@
-// Neon Coast Cover Studio — the cover engine (vanilla 2D canvas, no network).
-// Six multi-panel layouts, five gradient-map grades, a title block in Anton
-// with a Pacifico neon subtitle, plus grain, vignette, a halftone option, a
-// five-star heat meter and a badge ribbon. Everything is drawn from the
-// caller's photos and state, so the same code renders the live preview and
-// the exported PNGs at any size.
+// Neon Coast Cover Studio — the cover painter (plain 2D canvas, no network).
+// Seven multi-panel layouts, five gradient-map grades, a V-shaped title block
+// in Anton with a Pacifico neon tagline, plus grain, vignette, a halftone
+// switch, a five-star heat meter and a badge ribbon. Every picture comes from
+// the caller's photos and state, so the same painter draws the live preview
+// and the exported PNGs at any size.
 
 export const LAYOUTS = [
   { id: 'grid9', name: 'Nine Panel', panels: 8 },
@@ -54,23 +54,24 @@ export const SIZES = [
   { id: 'wide', label: 'Wide 1920 x 1080', w: 1920, h: 1080 },
 ];
 
-/** A fresh default state. `panels` holds nine crop configs; each layout uses the ones it needs.
- * Every panel uses a DIFFERENT sample photo (no repeats), and each crop is
- * centred on its photo's face, so no face is ever cut by a panel edge. */
-export function defaultState() {
+/** A fresh default state. `panels` holds nine crop setups; each layout uses
+ * the ones it needs. Every panel shows a DIFFERENT sample picture (no
+ * repeats), and each crop is centred on its picture's face, so no face is
+ * ever cut by a panel edge. */
+export function freshState() {
   const crops = [
-    { photo: 12, cx: 0.25, cy: 0.50, zoom: 1.0 },  // mafia: landscape art, mobster on the left
-    { photo: 13, cx: 0.55, cy: 0.50, zoom: 1.0 },  // bikini-drink: face + cocktail
-    { photo: 14, cx: 0.55, cy: 0.55, zoom: 1.0 },  // lambo: driver face clear of the V logo's top edge
-    { photo: 8, cx: 0.70, cy: 0.47, zoom: 1.4 },   // convertible: red classic, driver zoomed big
-    { photo: 6, cx: 0.5, cy: 0.25, zoom: 1.3 },    // skater: face fully in frame, not under the title
-    { photo: 4, cx: 0.45, cy: 0.40, zoom: 1.3 },   // lifeguard: face + chest tattoos in frame
-    { photo: 9, cx: 0.57, cy: 0.55, zoom: 1.0 },   // oceandrive: Black rider standing stunt on a sport bike, neon street
-    { photo: 10, cx: 0.55, cy: 0.55, zoom: 1.0 },  // alligator: head right, low in frame
-    { photo: 11, cx: 0.5, cy: 0.58, zoom: 1.0 },   // dog: bar trio — guy with pistol, two girls with cocktails; cy 0.58 keeps faces + pistol in the wide slot
+    { photo: 0, cx: 0.45, cy: 0.28, zoom: 1.3 },   // mafia: tall art, mobster on the left; zoomed in enough that the crop has slack on every side (a drag in any direction moves the photo — a window jammed at the source edge makes dragging feel dead); cy 0.28 keeps his whole face in the tall slot on both the 1920-wide cover and the square editor
+    { photo: 1, cx: 0.52, cy: 0.50, zoom: 1.0 },   // bikini-drink: face + cocktail
+    { photo: 2, cx: 0.55, cy: 0.45, zoom: 1.0 },   // lambo: driver face clear of the V logo's top edge
+    { photo: 3, cx: 0.45, cy: 0.45, zoom: 1.3 },   // convertible: red classic, driver zoomed big
+    { photo: 4, cx: 0.50, cy: 0.28, zoom: 1.15 },  // skater: face fully in frame, clear of the title point
+    { photo: 5, cx: 0.50, cy: 0.35, zoom: 1.2 },   // lifeguard: face + chest tattoos in frame
+    { photo: 6, cx: 0.50, cy: 0.35, zoom: 1.1 },   // motorcycle: rider standing on the bike, neon street
+    { photo: 7, cx: 0.55, cy: 0.55, zoom: 1.0 },   // alligator: head right, low in frame
+    { photo: 8, cx: 0.55, cy: 0.55, zoom: 1.0 },   // bar-trio: faces + pistol in the wide slot
   ];
   return {
-    layout: 'grid9',
+    layout: 'collage',
     grade: 'sunset',
     title: 'NEON COAST',
     subtitle: 'chase the sunset',
@@ -92,11 +93,12 @@ export function layoutById(id) {
 }
 
 /**
- * Slot rects for a layout at W x H. Each slot is {x, y, w, h, panel, rot, kind}
- * where kind is 'photo', 'title' or 'band' and panel indexes state.panels.
- * The title block is always drawn last, on top of the photos.
+ * Slot rectangles for a layout at W x H. Each slot is
+ * {x, y, w, h, panel, rot, kind} where kind is 'photo', 'title', 'band',
+ * 'footer' or 'logo' and panel indexes state.panels. The title slot is
+ * always painted last, on top of the photos.
  */
-export function layoutSlots(layoutId, W, H) {
+export function slotsFor(layoutId, W, H) {
   const g = Math.max(2, Math.round(Math.min(W, H) * 0.014));
   const slots = [];
   if (layoutId === 'grid9') {
@@ -119,7 +121,7 @@ export function layoutSlots(layoutId, W, H) {
     // (mafia, bikini), two wide car panels across the top, three mid panels
     // and two wide panels at the foot, with the title block overlapping the
     // top/middle seam in the centre like a poster logo. Panel sizes vary on
-    // purpose; every slot shows a different photo, nine in all.
+    // purpose; every slot shows a different picture, nine in all.
     slots.push({ x: 0, y: 0, w: W * 0.25, h: H * 0.50, panel: 0, rot: 0, kind: 'photo' });
     slots.push({ x: 0, y: H * 0.50, w: W * 0.25, h: H * 0.50, panel: 1, rot: 0, kind: 'photo' });
     slots.push({ x: W * 0.25, y: 0, w: W * 0.37, h: H * 0.34, panel: 2, rot: 0, kind: 'photo' });
@@ -175,7 +177,7 @@ export function layoutSlots(layoutId, W, H) {
 // --- deterministic grain -------------------------------------------------
 // A fixed-seed noise tile, so the same state always renders the same cover.
 let noiseTile = null;
-function mulberry32(seed) {
+function seededRandom(seed) {
   let a = seed >>> 0;
   return () => {
     a |= 0; a = (a + 0x6d2b79f5) | 0;
@@ -190,7 +192,7 @@ function getNoiseTile() {
   c.width = 192; c.height = 192;
   const x = c.getContext('2d');
   const img = x.createImageData(192, 192);
-  const rnd = mulberry32(20261119);
+  const rnd = seededRandom(20261119);
   for (let i = 0; i < img.data.length; i += 4) {
     const v = Math.floor(rnd() * 255);
     img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
@@ -200,8 +202,9 @@ function getNoiseTile() {
   return c;
 }
 
-// --- helpers ---------------------------------------------------------------
-function fitFont(ctx, text, family, weight, maxW, startSize, minSize = 10) {
+// --- small drawing helpers -------------------------------------------------
+// Shrink a font until the text fits maxW; returns the size that fits.
+function fitText(ctx, text, family, weight, maxW, startSize, minSize = 10) {
   let size = startSize;
   ctx.font = `${weight} ${size}px ${family}`;
   while (size > minSize && ctx.measureText(text).width > maxW) {
@@ -211,7 +214,7 @@ function fitFont(ctx, text, family, weight, maxW, startSize, minSize = 10) {
   return size;
 }
 
-function drawStar(ctx, cx, cy, r, fill) {
+function paintStar(ctx, cx, cy, r, filled) {
   ctx.beginPath();
   for (let i = 0; i < 10; i++) {
     const ang = -Math.PI / 2 + (i * Math.PI) / 5;
@@ -222,11 +225,11 @@ function drawStar(ctx, cx, cy, r, fill) {
     else ctx.lineTo(px, py);
   }
   ctx.closePath();
-  if (fill) ctx.fill();
+  if (filled) ctx.fill();
   else ctx.stroke();
 }
 
-function drawHeat(ctx, x, y, size, heat) {
+function paintHeatMeter(ctx, x, y, size, heat) {
   ctx.save();
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
@@ -235,13 +238,13 @@ function drawHeat(ctx, x, y, size, heat) {
     ctx.fillStyle = i < heat ? '#ffd76a' : 'rgba(255,255,255,0.25)';
     ctx.strokeStyle = 'rgba(20,9,43,0.85)';
     ctx.lineWidth = Math.max(1, size * 0.06);
-    drawStar(ctx, cx, y, size / 2, i < heat);
+    paintStar(ctx, cx, y, size / 2, i < heat);
     if (i >= heat) ctx.stroke();
   }
   ctx.restore();
 }
 
-function drawBadge(ctx, x, y, w, h, text) {
+function paintBadge(ctx, x, y, w, h, text) {
   ctx.save();
   ctx.translate(x + w / 2, y + h / 2);
   ctx.rotate(-0.06);
@@ -256,13 +259,13 @@ function drawBadge(ctx, x, y, w, h, text) {
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const size = fitFont(ctx, text, 'Anton, sans-serif', 400, w * 0.86, h * 0.62);
+  const size = fitText(ctx, text, 'Anton, sans-serif', 400, w * 0.86, h * 0.62);
   ctx.font = `400 ${size}px Anton, sans-serif`;
   ctx.fillText(text, 0, h * 0.03);
   ctx.restore();
 }
 
-function drawHalftone(ctx, x, y, w, h, step, alpha) {
+function paintHalftone(ctx, x, y, w, h, step, alpha) {
   ctx.save();
   ctx.fillStyle = `rgba(255,255,255,${alpha})`;
   for (let yy = y + step / 2; yy < y + h; yy += step) {
@@ -278,7 +281,7 @@ function drawHalftone(ctx, x, y, w, h, step, alpha) {
 }
 
 // --- photo panels ----------------------------------------------------------
-function drawPhotoPanel(ctx, slot, photo, grade, W, H) {
+function paintPhoto(ctx, slot, photo, grade, cfg) {
   const { x, y, w, h, rot } = slot;
   ctx.save();
   if (rot) {
@@ -292,9 +295,10 @@ function drawPhotoPanel(ctx, slot, photo, grade, W, H) {
   ctx.rect(0, 0, w, h);
   ctx.clip();
   if (photo) {
-    const iw = photo.naturalWidth;
-    const ih = photo.naturalHeight;
-    const cfg = slot.cfg;
+    // A photo is an Image (naturalWidth) or a pre-decoded offscreen canvas
+    // (width): both draw the same way, but only Image has naturalWidth.
+    const iw = photo.naturalWidth ?? photo.width;
+    const ih = photo.naturalHeight ?? photo.height;
     // Cover-fit with a zoomed source window centred on (cx, cy): the source
     // rect is clamped inside the photo, so no image content is ever drawn
     // outside the canvas (drawing past the canvas edge renders slightly
@@ -333,7 +337,7 @@ function drawPhotoPanel(ctx, slot, photo, grade, W, H) {
 }
 
 // --- title block -----------------------------------------------------------
-function drawTitleBlock(ctx, slot, state, grade, W, H) {
+function paintTitle(ctx, slot, state, grade, W) {
   const { x, y, w, h, kind } = slot;
   const u = Math.min(w, h);
   ctx.save();
@@ -344,7 +348,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = grade.title[0];
-    const size = fitFont(ctx, text, 'Anton, sans-serif', 400, w * 0.9, h * 0.62);
+    const size = fitText(ctx, text, 'Anton, sans-serif', 400, w * 0.9, h * 0.62);
     ctx.font = `400 ${size}px Anton, sans-serif`;
     try { ctx.letterSpacing = `${Math.max(1, size * 0.12)}px`; } catch { /* older canvas */ }
     ctx.fillText(text, x + w / 2, y + h / 2);
@@ -353,12 +357,12 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     return;
   }
 
-  // Collage logo block: a slim V chevron (after the big V silhouette in
-  // Risma's reference — the shape only, never the Rockstar logo itself),
-  // sunset-gradient fill, white Anton text with a dark outline. The V covers
-  // far less of the photos than the old wide rectangle (its point sits
-  // between the skater and lifeguard panels, below both faces), and the type
-  // is nearly twice as big. The subtitle floats just under the point.
+  // Collage logo block: a slim V chevron (a plain V shape only, never any
+  // game logo), sunset-gradient fill, white Anton text with a dark outline.
+  // The V covers far less of the photos than a wide rectangle (its point
+  // sits between the skater and lifeguard panels, below both faces), and the
+  // type is nearly twice as big as the old block's. The subtitle floats just
+  // under the point on a small dark pill.
   if (kind === 'logo') {
     const cx = x + w / 2;
     const logoTitle = (state.title || 'NEON COAST').toUpperCase();
@@ -388,7 +392,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     logoLines.forEach((line, i) => {
       const t = i < lineTs.length ? lineTs[i] : 0.58 + 0.22 * (i - 1);
       const maxW = w * (1 - t) - pad * 2;
-      size = Math.min(size, fitFont(ctx, line, 'Anton, sans-serif', 400, maxW, bandH));
+      size = Math.min(size, fitText(ctx, line, 'Anton, sans-serif', 400, maxW, bandH));
     });
     size = Math.max(10, size);
     ctx.textAlign = 'center';
@@ -405,10 +409,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     });
     const sub = (state.subtitle || '').trim();
     if (sub) {
-      // The tagline rides on a small dark pill just under the point, so it
-      // stays readable over the busy photos instead of sprawling across
-      // the skater's and lifeguard's necks.
-      const subSize = fitFont(ctx, sub, 'Pacifico, cursive', 400, w * 0.85, h * 0.13);
+      const subSize = fitText(ctx, sub, 'Pacifico, cursive', 400, w * 0.85, h * 0.13);
       ctx.font = `400 ${subSize}px Pacifico, cursive`;
       const subY = y + h + h * 0.10;
       const textW = ctx.measureText(sub).width;
@@ -458,7 +459,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
   } else {
     ctx.fillStyle = '#14092b';
     ctx.fillRect(x, y, w, h);
-    if (state.halftone) drawHalftone(ctx, x, y, w, h, Math.max(10, u * 0.09), 0.10);
+    if (state.halftone) paintHalftone(ctx, x, y, w, h, Math.max(10, u * 0.09), 0.10);
     ctx.lineWidth = Math.max(2, u * 0.012);
     ctx.strokeStyle = '#ff2e88';
     ctx.strokeRect(x, y, w, h);
@@ -477,23 +478,23 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     // badge ribbon in the cover's top-right corner (never over a face).
     const starSize = Math.max(8, h * 0.13);
     const starsW = starSize * 1.35 * 5;
-    drawHeat(ctx, x + (w - starsW) / 2, y + h * 0.14, starSize, state.heat);
+    paintHeatMeter(ctx, x + (w - starsW) / 2, y + h * 0.14, starSize, state.heat);
     const bw = Math.min(W * 0.2, 240);
     const bh = Math.max(14, Math.min(h * 0.24, 46));
-    drawBadge(ctx, W - bw - pad, pad, bw, bh, state.badge || 'EST. 2026');
+    paintBadge(ctx, W - bw - pad, pad, bw, bh, state.badge || 'EST. 2026');
 
     const titleMaxW = w - pad * 2;
     const titleMaxH = h * 0.34;
     // Bands read best with one big line; stack the words only when a single
     // line would shrink below a useful size.
     let titleLines = [title];
-    const oneLineSize = fitFont(ctx, title, 'Anton, sans-serif', 400, titleMaxW, titleMaxH * 0.92);
+    const oneLineSize = fitText(ctx, title, 'Anton, sans-serif', 400, titleMaxW, titleMaxH * 0.92);
     if (oneLineSize < titleMaxH * 0.42) titleLines = lines;
     const lineH = titleMaxH / Math.max(1, titleLines.length);
     let size = Math.min(lineH * 0.92, (titleMaxW / Math.max(1, ...titleLines.map((l) => l.length))) * 0.78);
     size = Math.max(10, size);
     for (const line of titleLines) {
-      size = Math.min(size, fitFont(ctx, line, 'Anton, sans-serif', 400, titleMaxW, size));
+      size = Math.min(size, fitText(ctx, line, 'Anton, sans-serif', 400, titleMaxW, size));
     }
     const grad = ctx.createLinearGradient(x, y, x + w * 0.3, y + h);
     grad.addColorStop(0, grade.title[0]);
@@ -511,7 +512,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
     });
     const sub = (state.subtitle || '').trim();
     if (sub) {
-      const subSize = fitFont(ctx, sub, 'Pacifico, cursive', 400, titleMaxW * 0.94, h * 0.20);
+      const subSize = fitText(ctx, sub, 'Pacifico, cursive', 400, titleMaxW * 0.94, h * 0.20);
       ctx.font = `400 ${subSize}px Pacifico, cursive`;
       ctx.fillStyle = grade.sub;
       ctx.shadowColor = grade.sub;
@@ -527,14 +528,13 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
   const titleMaxW = w - pad * 2;
   const titleMaxH = h * 0.52;
 
-  // Title in Anton, sunset-gradient fill, dark outline.
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const lineH = titleMaxH / Math.max(1, lines.length);
   let size = Math.min(lineH * 0.92, titleMaxW / Math.max(1, ...lines.map((l) => l.length)) * 0.78);
   size = Math.max(10, size);
   for (const line of lines) {
-    size = Math.min(size, fitFont(ctx, line, 'Anton, sans-serif', 400, titleMaxW, size));
+    size = Math.min(size, fitText(ctx, line, 'Anton, sans-serif', 400, titleMaxW, size));
   }
   const grad = ctx.createLinearGradient(x, y, x + w * 0.3, y + h);
   grad.addColorStop(0, grade.title[0]);
@@ -554,7 +554,7 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
   // Subtitle in Pacifico, neon glow.
   const sub = (state.subtitle || '').trim();
   if (sub) {
-    const subSize = fitFont(ctx, sub, 'Pacifico, cursive', 400, titleMaxW * 0.94, h * 0.16);
+    const subSize = fitText(ctx, sub, 'Pacifico, cursive', 400, titleMaxW * 0.94, h * 0.16);
     ctx.font = `400 ${subSize}px Pacifico, cursive`;
     ctx.fillStyle = grade.sub;
     ctx.shadowColor = grade.sub;
@@ -566,16 +566,16 @@ function drawTitleBlock(ctx, slot, state, grade, W, H) {
   // Heat meter under the title.
   const starSize = Math.max(8, Math.min(w, h) * 0.075);
   const starsW = starSize * 1.35 * 5;
-  drawHeat(ctx, x + (w - starsW) / 2, y + h * 0.68, starSize, state.heat);
+  paintHeatMeter(ctx, x + (w - starsW) / 2, y + h * 0.68, starSize, state.heat);
   ctx.restore();
 }
 
 /**
- * Draws the whole cover onto `canvas` (any size) from `state` and `photos`
+ * Paints the whole cover onto `canvas` (any size) from `state` and `photos`
  * (an array of images, or null entries). `opts.preview` draws the editor's
  * selection outline and panel numbers; exports call it without opts.
  */
-export function drawCover(canvas, state, photos, opts = {}) {
+export function paintCover(canvas, state, photos, opts = {}) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width;
   const H = canvas.height;
@@ -584,17 +584,17 @@ export function drawCover(canvas, state, photos, opts = {}) {
   ctx.fillStyle = '#14092b';
   ctx.fillRect(0, 0, W, H);
 
-  const slots = layoutSlots(state.layout, W, H);
+  const slots = slotsFor(state.layout, W, H);
   // Photos first, then the title block on top.
   for (const slot of slots) {
     if (slot.kind !== 'photo') continue;
     const cfg = state.panels[slot.panel] ?? { photo: 0, cx: 0.5, cy: 0.5, zoom: 1 };
     const photo = photos[cfg.photo] ?? null;
-    drawPhotoPanel(ctx, { ...slot, cfg }, photo, grade, W, H);
+    paintPhoto(ctx, slot, photo, grade, cfg);
   }
   for (const slot of slots) {
     if (slot.kind === 'photo') continue;
-    drawTitleBlock(ctx, slot, state, grade, W, H);
+    paintTitle(ctx, slot, state, grade, W);
   }
 
   if (state.grain) {
@@ -641,7 +641,7 @@ export function drawCover(canvas, state, photos, opts = {}) {
 
 /** Hit-test: which photo panel (index into state.panels) sits at px, py? */
 export function panelAt(layoutId, W, H, px, py) {
-  const slots = layoutSlots(layoutId, W, H);
+  const slots = slotsFor(layoutId, W, H);
   for (const s of slots) {
     if (s.kind !== 'photo') continue;
     if (px >= s.x && px <= s.x + s.w && py >= s.y && py <= s.y + s.h) return s.panel;
