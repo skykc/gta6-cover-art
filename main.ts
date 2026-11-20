@@ -1,17 +1,18 @@
-// Neon Coast Cover Studio — a working gta6-cover-art-01 entry (Node 22, standard library only): the app is this
-// directory's app/ folder, plain static files a desktop browser loads offline (app/index.html and its ES modules,
-// no library and no network request), and the program hands it in. It copies app/ and screenshots/ from beside this
-// file to /output and writes /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
-// The app is a cover maker: seven multi-panel layouts (nine-panel grid with a halftone title block, a nine-photo
-// key-art collage with a slim V title block, hero + three, full bleed, tilted snapshots, six-panel sleeve, poster),
-// five gradient-map grades with grain, vignette and halftone, Anton + Pacifico lettering (OFL, vendored), drag/zoom
-// crop per panel, undo/redo, and one-click PNG export in 1080 x 1080, 1080 x 1350 and 1920 x 1080. Its twelve sample
-// pictures (app/samples/) are AI-made original illustrations, free to use. Put your 3 or 4 PNG or JPEG screenshots
-// in screenshots/ (the first by name is the cover) and run it.
+// Neon Coast Cover Studio — a make.fun gta6-cover-art-01 entry, round 4.
+// Node 22, standard library only. The entry is the static web app in app/:
+// open it offline in a desktop browser, drop in photos, pick one of seven
+// layouts and five gradient-map grades, and export a GTA VI key-art style
+// cover as a PNG at 1080x1080, 1080x1350 or 1920x1080. The twelve sample
+// illustrations in app/samples/ were generated fresh for this entry, and
+// the Anton and Pacifico fonts are vendored in app/fonts/ (OFL).
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
+// This file is only the hand-in plumbing: it copies app/ and screenshots/
+// next to this file into /output and writes /output/dossier.json with the
+// vendored make.fun library, so the judge can read the app and the four
+// screenshots. Run it locally with:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Serve the app for a try-out with `node serve.ts`, then open
+// http://localhost:8080.
 
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

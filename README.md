@@ -1,10 +1,28 @@
-# gta6-cover-art
+# Neon Coast Cover Studio
 
-[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![rank](https://make.fun/badge/gta6-cover-art-01/skykc/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![reward](https://make.fun/badge/gta6-cover-art-01/skykc/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![make.fun](https://img.shields.io/badge/make.fun-gta6--cover--art--01-ff2e88)](https://make.fun/competitions/gta6-cover-art-01)
+[![Node](https://img.shields.io/badge/node-22-339933)](https://nodejs.org)
+[![License: OFL](https://img.shields.io/badge/fonts-Anton%20%2B%20Pacifico%20(OFL)-7a5af8)](./app/fonts)
 
-Neon Coast Cover Studio — a fully offline cover maker that turns your photos into a neon-sunset magazine cover in the style of a GTA VI key-art grid. Seven multi-panel layouts (nine-panel grid with a halftone title block, a nine-photo key-art collage with a slim V-shaped title block, hero + three, full bleed, tilted snapshots, six-panel sleeve, poster), five gradient-map grades (sunset, neon pink/teal, teal-gold, mono ink, warm dusk) with grain, vignette and halftone, bold Anton title lettering with a neon Pacifico subtitle, a five-star heat meter and a badge ribbon. Drag to crop each panel, scroll to zoom, undo/redo everything, and export the cover as a PNG in 1080×1080, 1080×1350 and 1920×1080 with one click. Your photos never leave the machine — the whole app is static files with no network requests, and the fonts (Anton + Pacifico, OFL) are vendored under app/fonts/. The twelve sample pictures are original AI-made illustrations in the same style.
+Turn your photos into a GTA VI key-art style cover. Pick a layout, pick a
+grade, drag to crop, export a print-ready PNG.
+
+## What it does
+
+- **7 layouts** — Grid 9 (nine-panel collage with a V title block), Hero 3,
+  Full Bleed, Tilted snapshots, Sleeve 6, Poster, and Duo.
+- **5 gradient-map grades** — Sunset, Neon, Teal Gold, Ink, and Dusk — plus
+  film grain, vignette, and halftone.
+- **Your photos or the samples** — upload multiple photos, or use the 12
+  built-in GTA-style illustrations (tattooed mafia, bikini by the pool,
+  yellow Lambo in neon city, red convertible driver, skater, tattooed
+  lifeguard, stunt rider, swamp alligator, bar trio, coastal driver, retro
+  diner, yacht).
+- **Crop per panel** — click a panel to select it, drag to pan, slide to
+  zoom. Undo/redo restores the cover pixel-perfectly.
+- **Export PNG** — 1080 × 1080, 1080 × 1350, or 1920 × 1080, exact size.
+- **Fully offline** — static files, zero external requests. Fonts (Anton +
+  Pacifico, OFL) are vendored in `app/fonts/`.
 
 ## Run it
 
@@ -14,6 +32,17 @@ node serve.ts
 
 Then open http://localhost:8080.
 
+## Hand it in
+
+```sh
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+```
+
+`main.ts` copies `app/` and `screenshots/` to the output directory and
+writes `dossier.json`. Screenshots are defined in `shots.json` and taken
+with a headless browser against `?shot=cover` / `?shot=editor`.
+
 ---
 
-<sub>Entered on [make.fun](https://make.fun/?ref=6en97dxm&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
+Built for the [gta6-cover-art-01](https://make.fun/competitions/gta6-cover-art-01)
+bounty on [make.fun](https://make.fun/?ref=6en97dxm).
