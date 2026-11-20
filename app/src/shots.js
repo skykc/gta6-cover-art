@@ -1,35 +1,34 @@
-// Fixed scenes for screenshots: ?shot=cover shows the cover alone,
-// ?shot=editor shows the full editor with the cover inside.
-// Query params: layout, grade, caption (title), tagline, photos (comma
-// list of sample names, in panel order). window.__shotReady is set once
-// the cover has been painted with fonts loaded.
+// Fixed scenes for screenshots: ?shot=1-cover shows the V collage alone,
+// ?shot=2-editor the editor with photos loaded, ?shot=3-cover the tilted
+// layout, ?shot=4-cover the poster layout. window.__shotReady is set once
+// the scene has painted, so the screenshot tool can capture it.
 
-const LAYOUTS = ['grid9', 'hero3', 'fullbleed', 'tilted', 'sleeve6', 'poster', 'duo'];
-const GRADES = ['sunset', 'neon', 'tealgold', 'ink', 'dusk'];
+import { defaultState } from './cover.js';
 
-export async function runShot(shot, params, api) {
-  if (shot === 'cover') document.body.classList.add('shot-cover');
-  const layout = params.get('layout');
-  const grade = params.get('grade');
-  const caption = params.get('caption');
-  const tagline = params.get('tagline');
-  const photos = params.get('photos');
+const PRESETS = {
+  '1-cover': { layout: 'vcollage', grade: 'sunset', coverOnly: true },
+  '2-editor': { layout: 'vcollage', grade: 'sunset', coverOnly: false },
+  '3-cover': { layout: 'tilted', grade: 'neon', coverOnly: true },
+  '4-cover': { layout: 'poster', grade: 'dusk', coverOnly: true },
+};
 
-  const patch = {};
-  if (layout && LAYOUTS.includes(layout)) patch.layout = layout;
-  if (grade && GRADES.includes(grade)) patch.grade = grade;
-  if (caption) patch.title = caption;
-  if (tagline !== null) patch.tagline = tagline;
-  if (photos) {
-    const names = photos.split(',').map((s) => s.trim()).filter(Boolean);
-    patch.panels = names.map((src) => ({ src, ox: 0, oy: 0, zoom: 1 }));
-  }
-  api.setState(patch);
-  api.redraw();
-  // Never signal ready while a font is still swapping in: a screenshot
-  // taken a moment too early would bake in a fallback face.
-  try { await document.fonts.ready; } catch { /* fall back */ }
-  api.redraw();
+// `api` is the editor's handle: state accessors, the renderer and the
+// control sync, passed in from main.js so this file stays small.
+export async function runShot(shot, query, api) {
+  const preset = PRESETS[shot] || PRESETS['2-editor'];
+  const state = defaultState();
+  state.layout = query.get('layout') || preset.layout;
+  state.grade = query.get('grade') || preset.grade;
+  state.title = query.get('title') || 'NEON COAST';
+  state.tagline = query.get('tagline') || 'chase the sunset';
+  state.size = '1080x1080';
+  api.setState(state);
+  api.syncControls();
+  if (preset.coverOnly) document.body.classList.add('shot-cover');
+  api.render();
+  // Two frames, so the canvas paint and the webfonts have landed.
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  await document.fonts.ready;
+  api.render();
   window.__shotReady = true;
 }

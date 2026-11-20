@@ -3,75 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neon Coast Cover Studio — GTA-style cover maker</title>
-<link rel="icon" href="data:,">
+<title>Neon Coast Cover Studio</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <main class="app">
-  <section class="controls" aria-label="Cover controls">
+  <section class="panel controls" aria-label="Cover controls">
     <header>
-      <h1>Neon Coast</h1>
-      <p class="sub">Cover Studio — turn photos into a GTA VI key-art cover.</p>
+      <h1>Neon Coast <span>Cover Studio</span></h1>
+      <p>Your photo, nine panels, one Vice City sunset. Pick a panel, drop in a photo, export the cover.</p>
     </header>
 
-    <label class="field">Title
-      <input id="title" type="text" maxlength="24" value="NEON COAST">
-    </label>
-    <label class="field">Tagline
-      <input id="tagline" type="text" maxlength="40" value="chase the sunset">
-    </label>
-
-    <div class="group">
-      <span class="group-label">Layout</span>
-      <div id="layouts" class="picker"></div>
+    <div class="row undo-row">
+      <button id="undo" type="button" disabled>↩ Undo</button>
+      <button id="redo" type="button" disabled>↪ Redo</button>
+      <button id="shuffle" type="button">🎲 Shuffle</button>
+      <button id="reset" type="button">Reset</button>
     </div>
 
-    <div class="group">
-      <span class="group-label">Grade</span>
-      <div id="grades" class="picker"></div>
-    </div>
+    <fieldset>
+      <legend>Layout</legend>
+      <div class="chips" id="layouts">
+        <button type="button" data-layout="vcollage" class="active">V collage</button>
+        <button type="button" data-layout="grid9">Grid 9</button>
+        <button type="button" data-layout="hero3">Hero + 3</button>
+        <button type="button" data-layout="fullbleed">Full bleed</button>
+        <button type="button" data-layout="tilted">Tilted</button>
+        <button type="button" data-layout="sleeve6">Sleeve 6</button>
+        <button type="button" data-layout="poster">Poster</button>
+      </div>
+    </fieldset>
 
-    <div class="group">
-      <span class="group-label">Effects</span>
-      <label class="check"><input id="grain" type="checkbox" checked> Grain</label>
-      <label class="check"><input id="vignette" type="checkbox" checked> Vignette</label>
-      <label class="check"><input id="halftone" type="checkbox"> Halftone</label>
-    </div>
+    <fieldset>
+      <legend>Colour grade</legend>
+      <div class="chips" id="grades">
+        <button type="button" data-grade="sunset" class="active">Sunset</button>
+        <button type="button" data-grade="neon">Neon</button>
+        <button type="button" data-grade="teal-gold">Teal gold</button>
+        <button type="button" data-grade="ink">Ink</button>
+        <button type="button" data-grade="dusk">Dusk</button>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="grain" checked> Grain</label>
+        <label><input type="checkbox" id="vignette" checked> Vignette</label>
+        <label><input type="checkbox" id="halftone"> Halftone</label>
+      </div>
+    </fieldset>
 
-    <div class="group">
-      <span class="group-label">Photos — pick one, then click a panel</span>
-      <label class="upload">Upload photos
-        <input id="upload" type="file" accept="image/*" multiple>
+    <fieldset>
+      <legend>Words</legend>
+      <label>Title <input id="title" type="text" maxlength="24" value="NEON COAST"></label>
+      <label>Tagline <input id="tagline" type="text" maxlength="40" value="chase the sunset"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Photos — click a panel, then a photo</legend>
+      <p class="hint" id="panelname">Panel 1 of 9</p>
+      <label class="upload">＋ Add your photos
+        <input id="upload" type="file" accept="image/*" multiple hidden>
       </label>
-      <div id="tray" class="tray"></div>
-    </div>
-
-    <div class="group">
-      <span class="group-label">Selected panel</span>
-      <p id="panelLabel" class="panel-label">Panel 1 of 8</p>
-      <label class="field">Zoom <span id="zoomVal">100%</span>
+      <div class="tray" id="tray"></div>
+      <label>Zoom <span id="zoomval">100%</span>
         <input id="zoom" type="range" min="1" max="2.5" step="0.05" value="1">
       </label>
-      <p class="hint">Drag on the cover to pan the photo inside a panel.</p>
-    </div>
+      <p class="hint">Drag the cover to pan the photo inside the selected panel.</p>
+    </fieldset>
 
-    <div class="actions">
-      <button id="shuffle" type="button">Shuffle photos</button>
-      <button id="undo" type="button" disabled>Undo</button>
-      <button id="redo" type="button" disabled>Redo</button>
-    </div>
+    <fieldset>
+      <legend>Export</legend>
+      <div class="chips" id="sizes">
+        <button type="button" data-size="1080x1080" class="active">1080 × 1080</button>
+        <button type="button" data-size="1080x1350">1080 × 1350</button>
+        <button type="button" data-size="1920x1080">1920 × 1080</button>
+      </div>
+      <input id="size" type="hidden" value="1080x1080">
+      <button id="export" type="button" class="big">⬇ Export PNG</button>
+    </fieldset>
 
-    <div class="group">
-      <span class="group-label">Export PNG</span>
-      <div id="exports" class="exports"></div>
-    </div>
-
-    <p id="status" role="status"></p>
+    <p id="status" role="status">Loading…</p>
   </section>
 
   <section class="stage" aria-label="Cover preview">
-    <canvas id="cover" width="1080" height="1080"></canvas>
+    <canvas id="cover" width="720" height="720"></canvas>
   </section>
 </main>
 <script type="module" src="./src/main.js"></script>

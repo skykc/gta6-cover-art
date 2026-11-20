@@ -1,48 +1,34 @@
 # Neon Coast Cover Studio
 
-[![make.fun](https://img.shields.io/badge/make.fun-gta6--cover--art--01-ff2e88)](https://make.fun/competitions/gta6-cover-art-01)
-[![Node](https://img.shields.io/badge/node-22-339933)](https://nodejs.org)
-[![License: OFL](https://img.shields.io/badge/fonts-Anton%20%2B%20Pacifico%20(OFL)-7a5af8)](./app/fonts)
+[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![rank](https://make.fun/badge/gta6-cover-art-01/skykc/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![reward](https://make.fun/badge/gta6-cover-art-01/skykc/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-Turn your photos into a GTA VI key-art style cover. Pick a layout, pick a
-grade, drag to crop, export a print-ready PNG.
+An offline web app that turns your photo and a caption into GTA-style cover art: a nine-panel Vice City collage with a big V title block, five sunset/neon colour grades, and PNG exports in the common post sizes.
 
 ## What it does
 
-- **7 layouts** — Grid 9 (nine-panel collage with a V title block), Hero 3,
-  Full Bleed, Tilted snapshots, Sleeve 6, Poster, and Duo.
-- **5 gradient-map grades** — Sunset, Neon, Teal Gold, Ink, and Dusk — plus
-  film grain, vignette, and halftone.
-- **Your photos or the samples** — upload multiple photos, or use the 12
-  built-in GTA-style illustrations (tattooed mafia, bikini by the pool,
-  yellow Lambo in neon city, red convertible driver, skater, tattooed
-  lifeguard, stunt rider, swamp alligator, bar trio, coastal driver, retro
-  diner, yacht).
-- **Crop per panel** — click a panel to select it, drag to pan, slide to
-  zoom. Undo/redo restores the cover pixel-perfectly.
-- **Export PNG** — 1080 × 1080, 1080 × 1350, or 1920 × 1080, exact size.
-- **Fully offline** — static files, zero external requests. Fonts (Anton +
-  Pacifico, OFL) are vendored in `app/fonts/`.
+- **7 layouts** — V collage, Grid 9, Hero + 3, Full bleed, Tilted snapshots, Sleeve 6, Poster.
+- **5 colour grades** — Sunset, Neon, Teal gold, Ink, Dusk — plus grain, vignette and halftone print effects.
+- **Any photo** — upload your own, drop it into any of the nine panels, drag to pan, zoom to crop. Or start from the 12 built-in GTA-style illustrations (mafia, lambo, bike stunt, bar trio, gator and more).
+- **Words** — edit the big Anton title and the Pacifico tagline; the V block, bands and poster all follow.
+- **Undo / redo** — every step is kept and restores the exact same pixels.
+- **Export PNG** — 1080 × 1080, 1080 × 1350 and 1920 × 1080, one click each.
 
 ## Run it
 
 ```sh
 node serve.ts
+# open http://localhost:8080
 ```
 
-Then open http://localhost:8080.
+No build step, no network: every script, font and picture is a file under `app/`. Fonts are Anton and Pacifico under the SIL Open Font License (`app/fonts/OFL.txt`). The sample illustrations were made with an image model for this entry.
 
-## Hand it in
+## Screenshots
 
-```sh
-mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-```
+- `screenshots/1-cover.jpg` — the V collage cover
+- `screenshots/2-editor.jpg` — the editor with photos loaded
+- `screenshots/3-cover.jpg` — the Tilted layout, Neon grade
+- `screenshots/4-cover.jpg` — the Poster layout, Dusk grade
 
-`main.ts` copies `app/` and `screenshots/` to the output directory and
-writes `dossier.json`. Screenshots are defined in `shots.json` and taken
-with a headless browser against `?shot=cover` / `?shot=editor`.
-
----
-
-Built for the [gta6-cover-art-01](https://make.fun/competitions/gta6-cover-art-01)
-bounty on [make.fun](https://make.fun/?ref=6en97dxm).
+Made for [make.fun](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01&ref=6en97dxm) — bounty `gta6-cover-art-01`.
